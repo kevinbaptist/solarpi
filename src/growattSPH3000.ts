@@ -317,7 +317,47 @@ export class GrowattSPH3000 implements Inverter {
             unique_id: "solarpi_energy_to_load_total",
             value_template: "{{ value_json.eLoadTotal }}",
             icon: "mdi:lightning-bolt"
-        }
+        },
+        {
+            name: "System Mode",
+            type: "sensor",
+            unique_id: "solarpi_system_mode",
+            value_template: "{{ value_json.systemMode }}"
+        },
+        {
+            name: "EPS Voltage",
+            type: "sensor",
+            device_class: "voltage",
+            unit_of_measurement: "V",
+            unique_id: "solarpi_voltage_eps",
+            value_template: "{{ value_json.vEps }}"
+            icon: "mdi:lightning-bolt"
+        },
+        {
+            name: "EPS Status",
+            type: "binary_sensor",
+            device_class: "power",
+            unique_id: "solarpi_eps_active",
+            value_template: "{{ value_json.isEpsActive }}"
+        },
+        {
+            name: "EPS Power",
+            type: "sensor",
+            device_class: "power",
+            state_class: "measurement",
+            unit_of_measurement: "W",
+            unique_id: "solarpi_eps_power",
+            value_template: "{{ value_json.epsPower }}",
+            icon: "mdi:lightning-bolt"
+        },
+        {
+            name: "EPS Load Percent",
+            type: "sensor",
+            unit_of_measurement: "%",
+            unique_id: "solarpi_load_eps",
+            value_template: "{{ value_json.loadEps }}",
+            icon: "mdi:gauge"
+        },
     ]
 
     private commandEntities: CommandEntity[] = [
@@ -1234,7 +1274,20 @@ export class GrowattSPH3000 implements Inverter {
 
     private parseInputRegisters2(inputRegisters: ReadRegisterResult) {
         const { data } = inputRegisters
+        const modeMap = {
+            5: 'PV + Battery Online (Grid Tied)',
+            6: 'Battery Online (Grid Tied)',
+            7: 'EPS Mode (PV Backup)',
+            8: 'EPS Mode (Battery Backup)'
+        }
+        const workMode = data[0]; // Register 1000
+
         return {
+            systemMode: modeMap[data[0]] || data[0],
+            vEps: data[68] / 10.0, // Grid voltage (V)
+            isEpsActive: workMode === 7 || workMode === 8, // 7=PV Offline, 8=Bat Offline
+            epsPower: data[70] / 10.0, // EPS Power (W)
+            loadEps: data[80], // Load EPS (%)
             pDischarge: (data[9] << 16 | data[10]) / 10.0, // Battery discharge power (W)
             pCharge: (data[11] << 16 | data[12]) / 10.0, // Battery charge power (W)
             soc: data[14], // Battery state of charge (%)
