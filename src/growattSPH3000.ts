@@ -832,29 +832,35 @@ export class GrowattSPH3000 implements Inverter {
     // read and writes to overlap
     // TODO create class that extends ModbusRTU with mutexed methods (and with timeouts)
     private async readInputRegisters(modbusClient: ModbusRTU, dataAddress: number, length: number): Promise<ReadRegisterResult> {
-        const release = await this.mutex
-            .acquire()
-            .catch(error => {
-                // TODO: if a mutex is locked for a long time, what to do? Release it here?
-                throw error // Pass this error back up
-            })
+        const release = await this.mutex.acquire();
 
-        let attempt = 0
+        try {
+            let attempt = 0;
+            const maxAttempts = 3;
 
-        // Attempt to read the input registers a maximum of three times to counter USB/serial errors
-        while (attempt++ < 3) {
-            try {
-                const result = await modbusClient.readInputRegisters(dataAddress, length)
-                release()
-                return result
-            } catch (error) { // modbus read error
-                console.log(`${logDate()} readInputRegisters() modbusClient.readInputRegisters() error: ${error} ${attempt!=3 ? "retrying" : "giving up"}`)
-                setTimeout(() => { }, 2000) // Wait a couple of seconds before trying again
+            while (attempt < maxAttempts) {
+                attempt++;
+                try {
+                    // Perform the actual read
+                    return await modbusClient.readInputRegisters(dataAddress, length);
+                } catch (error) {
+                    const message =
+                      error instanceof Error ? error.message : JSON.stringify(error);
+
+                    console.error(`${logDate()} Attempt ${attempt} failed: ${message}`);
+
+                    if (attempt >= maxAttempts) {
+                        throw new Error(`Failed to read input registers after ${maxAttempts} attempts: ${error}`);
+                    }
+
+                    // ACTUAL wait before retrying
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                }
             }
+            throw new Error("Unexpected end of loop"); // Should be unreachable
+        } finally {
+            release();
         }
-
-        release()
-        throw "Error reading data (input registers) from inverter after multiple attempts" // Return and pass this error back up
     }
 
     private async readHoldingRegisters(modbusClient: ModbusRTU, dataAddress: number, length: number): Promise<ReadRegisterResult> {
