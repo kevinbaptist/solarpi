@@ -987,6 +987,7 @@ export class GrowattSPH3000 implements Inverter {
         // For SPH3000 read the first 106 register values starting at address 0, then the first 64 register values
         // starting at address 1000
         const inputRegisters1 = await this.readInputRegisters(modbusClient, 0, 106)
+        await new Promise(resolve => setTimeout(resolve, 1000));
         const inputRegisters2 = await this.readInputRegisters(modbusClient, 1000, 81)
 
         // Parse these two buffers then combine into an object and return
