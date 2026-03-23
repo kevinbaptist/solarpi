@@ -347,6 +347,17 @@ export class GrowattSPH3000 implements Inverter {
             value_template: "{{ value_json.loadEps }}",
             icon: "mdi:gauge"
         },
+        {
+            name: "Export Offset Rate (0.1%)",
+            type: "number",
+            unique_id: "solarpi_export_offset_rate",
+            value_template: "{{ value_json.exportLimitPowerRate }}",
+            command_template: '{{ {"exportLimitPowerRate": value} }}',
+            mode: "box",
+            min: -1000,
+            max: 1000,
+            icon: "mdi:transmission-tower-export"
+        },
     ]
 
     private commandEntities: CommandEntity[] = [
@@ -1222,9 +1233,43 @@ export class GrowattSPH3000 implements Inverter {
                     subTopic: "time",
                     values: await this.getTime(modbusClient)
                 }
+            case "setExportOffset":
+                console.log(`${logDate()} Received Set Export Offset command`)
+                return await this.setExportOffset(modbusClient)
+            case "getExportOffset":
+                console.log(`${logDate()} Received Get Export Offset command`)
+                return {
+                    subTopic: "exportOffset",
+                    values: await this.getExportOffset(modbusClient)
+                }
             default:
                 throw `Unknown command: ${command.command}`
         }
+    }
+
+    private async getExportOffset(modbusClient: ModbusRTU) {
+        const regs = await this.readHoldingRegisters(modbusClient, 122, 2)
+        const { data } = regs
+        return {
+            exportLimitEnabled: data[0], // 0=disabled, 1=485, 2=232, 3=CT
+            exportLimitPowerRate: data[1] // raw value, unit 0.1%
+        }
+    }
+
+    private async setExportOffset(modbusClient: ModbusRTU) {
+        // Enable 485 export limit (register 122 = 1)
+        // Set a negative rate to force minimum export (register 123)
+        // For SPH6000BL: rated 6000W, 60W = 1% → write -10 (= -1.0%)
+        // Adjust the -10 value if you want more or less offset
+        const exportOffsetRate = -10 // -1.0% of rated power = ~60W for 6kW inverter
+
+        // Register 123 is signed, but Modbus holds unsigned 16-bit.
+        // Negative values use two's complement: -10 → 0xFFF6 = 65526
+        const rawRate = exportOffsetRate < 0
+            ? (65536 + exportOffsetRate)
+            : exportOffsetRate
+
+        await this.writeRegisters(modbusClient, 122, [1, rawRate])
     }
 
     private parseInputRegisters1(inputRegisters: ReadRegisterResult) {
