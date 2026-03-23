@@ -390,17 +390,6 @@ export class GrowattSPH3000 implements Inverter {
             payload_press: '"getTime"',
             icon: "mdi:check"
         },
-        {
-            name: "Export Offset Rate (0.1%)",
-            type: "number",
-            unique_id: "solarpi_export_offset_rate",
-            value_template: "{{ value_json.exportLimitPowerRate }}",
-            command_template: '{{ {"exportLimitPowerRate": value} }}',
-            mode: "box",
-            min: -1000,
-            max: 1000,
-            icon: "mdi:transmission-tower-export"
-        },
     ]
 
     private touChargingControlEntities: ControlEntity[] = [
@@ -601,7 +590,18 @@ export class GrowattSPH3000 implements Inverter {
             state_off: "OFF",
             state_on: "ON",
             icon: "mdi:lightning-bolt"
-        }
+        },
+        {
+            name: "Export Offset Rate (0.1%)",
+            type: "number",
+            unique_id: "solarpi_export_offset_rate",
+            value_template: "{{ value_json.exportLimitPowerRate }}",
+            command_template: '{{ {"exportLimitPowerRate": value} }}',
+            mode: "box",
+            min: -1000,
+            max: 1000,
+            icon: "mdi:transmission-tower-export"
+        },
     ]
 
     private touDischargingControlEntities: ControlEntity[] = [
