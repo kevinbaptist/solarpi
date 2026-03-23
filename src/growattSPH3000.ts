@@ -390,6 +390,14 @@ export class GrowattSPH3000 implements Inverter {
             payload_press: '"getTime"',
             icon: "mdi:check"
         },
+        {
+            name: "Get export",
+            type: "button",
+            unique_id: "solarpi_export",
+            command_template: '{ "command": {{ value }} }',
+            payload_press: '"getExportOffset"',
+            icon: "mdi:check"
+        },
     ]
 
     private touChargingControlEntities: ControlEntity[] = [
