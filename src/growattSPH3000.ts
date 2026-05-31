@@ -155,6 +155,15 @@ export class GrowattSPH3000 implements Inverter {
             value_template: "{{ value_json.inverterTemperature }}"
         },
         {
+            name: "IPM Temperature",
+            type: "sensor",
+            device_class: "temperature",
+            state_class: "measurement",
+            unit_of_measurement: "°C",
+            unique_id: "solarpi_ipmTemperature",
+            value_template: "{{ value_json.ipmTemperature }}"
+        },
+        {
             name: "Inverter Error",
             type: "sensor",
             unique_id: "solarpi_inverter_error",
@@ -1264,6 +1273,7 @@ export class GrowattSPH3000 implements Inverter {
             epvToday: ((data[59] << 16 | data[60]) + (data[63] << 16 | data[64])) / 10.0, // Combined PV energy today (kWH) (achieved by adding PV1 and PV2)
             epvTotal: (data[91] << 16 | data[92]) / 10.0, // Combined PV energy total (kWH)
             inverterTemperature: data[93] / 10.0, //°C
+            ipmTemperature: data[94] / 10.0, //°C
             inverterError: errorMap[data[105]] || data[105]
         }
     }
