@@ -54,7 +54,7 @@ async function runSolarPi() {
             }
         })
         .on("Reconnect", () => {
-            console.log(`${logDate()} Reconnecting to MQTT broker ${config.mqtt.host}:${config.mqtt.port}`)
+            console.log(`${logDate()} Reconnecting to MQTT broker ${config.mqtt}`)
         })
         .on("Disconnect", () => {
             console.log(`${logDate()} Disconnected from broker`)
