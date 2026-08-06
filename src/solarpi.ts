@@ -37,7 +37,7 @@ const inverterClient = new InverterClient(
 const publisher = new Publisher(config.mqtt, inverterClient.getSensorEntities(),
     inverterClient.getControlEntities(), inverterClient.getCommandEntities())
 console.log(
-    `${logDate()} Connecting to MQTT broker ${config.mqtt}...`
+    `${logDate()} Connecting to MQTT broker ${JSON.stringify(config.mqtt)}...`
 )
 runSolarPi()
 
@@ -54,7 +54,7 @@ async function runSolarPi() {
             }
         })
         .on("Reconnect", () => {
-            console.log(`${logDate()} Reconnecting to MQTT broker ${config.mqtt}`)
+            console.log(`${logDate()} Reconnecting to MQTT broker ${JSON.stringify(config.mqtt)}`)
         })
         .on("Disconnect", () => {
             console.log(`${logDate()} Disconnected from broker`)
