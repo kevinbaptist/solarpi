@@ -88,6 +88,19 @@ async function runSolarPi() {
         .on("unknown", () => {
             console.log(`${logDate()} Message received on unknown topic`)
         })
+        .on("Error", (error) => {
+            console.error(
+                `${logDate()} MQTT connection error: ${
+                    error instanceof Error ? error.message : error
+                }`
+            )
+        })
+        .on("Offline", () => {
+            console.warn(`${logDate()} MQTT client is offline`)
+        })
+        .on("Close", () => {
+            console.warn(`${logDate()} MQTT connection closed`)
+        })
 
     try {
         await inverterClient.init()
