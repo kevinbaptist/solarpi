@@ -36,7 +36,9 @@ const inverterClient = new InverterClient(
 
 const publisher = new Publisher(config.mqtt, inverterClient.getSensorEntities(),
     inverterClient.getControlEntities(), inverterClient.getCommandEntities())
-
+console.log(
+    `${logDate()} Connecting to MQTT broker ${config.mqtt.host}:${config.mqtt.port}...`
+)
 runSolarPi()
 
 async function runSolarPi() {
