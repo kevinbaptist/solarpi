@@ -202,6 +202,7 @@ export class GrowattSPH3000 implements Inverter {
             name: "State of Charge",
             type: "sensor",
             state_class: "measurement",
+            device_class: "battery",
             unit_of_measurement: "%",
             unique_id: "solarpi_state_of_charge",
             value_template: "{{ value_json.soc }}"
